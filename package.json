@@ -1,0 +1,18 @@
+{
+  "name": "SophisticatedHybridIntegrationTester",
+  "version": "1.0.0",
+  "keywords": [
+    "util",
+    "functional",
+    "server",
+    "client",
+    "browser"
+  ],
+  "author": "ronen",
+  "contributors": [],
+  "dependencies": {
+    "express": "^4.15.3"
+  }, "scripts":{
+"start":"node main.js"}
+
+}
