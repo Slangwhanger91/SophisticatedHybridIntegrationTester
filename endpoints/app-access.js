@@ -75,6 +75,32 @@ router.post('/login', function (req, res, next) {
 
 });
 
+router.post('/validateToken', function (req, res, next) {
+    var body = "";
+
+    req.on('data', function (chunk) {
+        body += chunk;
+    });
+    req.on('end', function () {
+        console.log('\nbody: ' + body);
+        var jsonBody = JSON.parse(body);
+        if (validator.validateParams(jsonBody, ["token"])) {
+
+            dbAccess.query("users", {'token': jsonBody.token}, function (data) {
+                if (data.length > 0) {
+                    res.send(responder.respondWith(200, {username:data[0].username}));
+                } else {
+                    res.send(responder.respondWith(401, "Wrong credentials."));
+                }
+                return;
+            });
+        } else {
+            res.send(responder.respondWith(400, "Err"));
+            return;
+        }
+    });
+});
+
 //json ex: {"username":"akakaka", "password":"fuck"}
 router.post('/register', function (req, res, next) {
     console.log("registering user: " + JSON.stringify(body));
@@ -112,6 +138,59 @@ router.post('/register', function (req, res, next) {
             res.send(responder.respondWith(400, "Err"));
             return;
         }
+    });
+});
+
+router.post('/query', function (req, res, next) {
+    var body = "";
+
+    req.on('data', function (chunk) {
+        body += chunk;
+    });
+
+    req.on('end', function () {
+        console.log('\nbody: ' + body);
+        try {
+            var jsonBody = JSON.parse(body);
+        } catch (e) {
+            res.send(responder.respondWith(503, "Corrupted Json"));
+            return;
+        }
+
+        var tok = req.get("token");
+        validator.validateToken(tok, function (isValidToken) {
+            if (!isValidToken) {
+                res.send(responder.respondWith(503, "bad request"));
+                return;
+            }
+
+            var queryJson = {};
+            var keyNum = 0;
+            if (validator.validateParams(jsonBody, ["username"])) {
+                queryJson.username = jsonBody.username;
+                keyNum++;
+            }
+            if (validator.validateParams(jsonBody, ["_id"])) {
+                queryJson._id = jsonBody._id;
+                keyNum++;
+            }
+            if (validator.validateParams(jsonBody, ["token"])) {
+                queryJson.token = jsonBody.token;
+                keyNum++;
+            }
+
+            if (Object.keys(jsonBody).length > keyNum) {
+                res.send(responder.respondWith(503, "Bad request"));
+                return;
+            }
+
+            console.log("GOOD SHIT: " + JSON.stringify(queryJson));
+            dbAccess.query("users", queryJson, function (data) {
+                console.log("FOUND SHIT" + JSON.stringify(data));
+                res.send(responder.respondWith(200, data));
+                return;
+            });
+        });
     });
 });
 

@@ -4,6 +4,8 @@ var responder = require('.././utils/responder');
 var validator = require('.././utils/validator');
 var dbAccess = require('.././dataaccesslayer/absdal');
 
+
+
 router.post('/addEvent', function (req, res, next) {
     var body = "";
     req.on('data', function (chunk) {
@@ -62,14 +64,14 @@ router.post('/query', function (req, res, next) {
             res.send(responder.respondWith(503, "Corrupted Json"));
             return;
         }
-        
+
         var tok = req.get("token");
         validator.validateToken(tok, function (isValidToken) {
             if (!isValidToken) {
                 res.send(responder.respondWith(503, "bad request"));
                 return;
             }
-            
+
             var queryJson = {};
             var keyNum = 0;
             if (validator.validateParams(jsonBody, ["userId"])) {
@@ -98,18 +100,12 @@ router.post('/query', function (req, res, next) {
                 return;
             }
 
-            if (Object.keys(queryJson).length === 0) {
-                console.log("BAD SHIT");
-                res.send(responder.respondWith(503, "Bad request"));
+            console.log("GOOD SHIT: " + JSON.stringify(queryJson));
+            dbAccess.query("events", queryJson, function (data) {
+                console.log("FOUND SHIT" + JSON.stringify(data));
+                res.send(responder.respondWith(200, data));
                 return;
-            } else {
-                console.log("GOOD SHIT: " + JSON.stringify(queryJson));
-                dbAccess.query("events", queryJson, function (data) {
-                    console.log("FOUND SHIT" + JSON.stringify(data));
-                    res.send(responder.respondWith(200, data));
-                    return;
-                });
-            }
+            });
         });
 
 

@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const app = express();
 const port = 3000;
+var cors = require('cors');
+
 //#!/usr/bin/env node
 
 /**
@@ -15,6 +17,7 @@ var eventHandler = require('./endpoints/event-handler');
 /**
  * Get port from environment and store in Express.
  */
+app.use(cors());
 app.set('port', port);
 app.use("/users", appAccess);
 app.use("/mocks", debugMocks);
